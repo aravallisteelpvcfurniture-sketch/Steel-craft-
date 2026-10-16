@@ -108,7 +108,7 @@ jobs:
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyALma0eK6KguGGDbE3x2koYYUCfWwbvJ3o"
+          "current_key": "AIzaSyDulAQs9Ms0m8dT2eRq-m6OKx1PQ56m1yI"
         }
       ]
     }
@@ -130,7 +130,12 @@ EOF
       - name: Build Debug APK
         run: |
           echo "Starting Debug APK build with Gradle..."
-          ./gradlew :app:assembleDebug --stacktrace --no-daemon
+          if [ -f "./gradlew" ]; then
+            chmod +x ./gradlew
+            ./gradlew :app:assembleDebug --stacktrace --no-daemon || gradle :app:assembleDebug --stacktrace --no-daemon
+          else
+            gradle :app:assembleDebug --stacktrace --no-daemon
+          fi
 
       - name: Prepare APK Outputs
         run: |
