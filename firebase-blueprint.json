@@ -1,0 +1,81 @@
+{
+  "entities": {
+    "Project": {
+      "title": "Project",
+      "description": "Fabrication and interior project/work order for steel, aluminium, UPVC, or wood works",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "The UID of the user who owns the project" },
+        "customerName": { "type": "string", "description": "Name of customer" },
+        "customerPhone": { "type": "string", "description": "Phone number of customer" },
+        "siteAddress": { "type": "string", "description": "Site address for measurement and installation" },
+        "category": { "type": "string", "description": "Work category e.g. STEEL_RAILING, ALUMINIUM_SECTION, WOODEN_BALCONY, UPVC_DOORS_WINDOWS, HOME_INTERIOR, FURNITURE" },
+        "title": { "type": "string", "description": "Project title" },
+        "status": { "type": "string", "description": "Project status" },
+        "totalSqft": { "type": "number", "description": "Total area in square feet" },
+        "runningFeet": { "type": "number", "description": "Running feet measurement" },
+        "ratePerUnit": { "type": "number", "description": "Estimated rate per unit" },
+        "totalAmount": { "type": "number", "description": "Total estimated amount" },
+        "advancePaid": { "type": "number", "description": "Advance payment received" },
+        "notes": { "type": "string", "description": "Measurement notes and specifications" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Creation timestamp via server timestamp" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Update timestamp via server timestamp" }
+      },
+      "required": ["userId", "customerName", "category", "title", "status", "createdAt"]
+    },
+    "CatalogItem": {
+      "title": "CatalogItem",
+      "description": "Portfolio and design catalog item showcasing railings, aluminium, wooden balcony, UPVC and interior work",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "The UID of the user" },
+        "title": { "type": "string", "description": "Design title" },
+        "category": { "type": "string", "description": "Category of work" },
+        "description": { "type": "string", "description": "Design description" },
+        "materialGrade": { "type": "string", "description": "Material specifications" },
+        "priceRange": { "type": "string", "description": "Estimated price range per sqft/rft" },
+        "imageUrl": { "type": "string", "description": "Photo image URL or asset tag" },
+        "isFeatured": { "type": "boolean", "description": "Whether item is featured" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Creation timestamp" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Update timestamp" }
+      },
+      "required": ["userId", "title", "category", "materialGrade", "createdAt"]
+    },
+    "Quotation": {
+      "title": "Quotation",
+      "description": "Formal quotation estimate for customer",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "The UID of the creator" },
+        "projectId": { "type": "string", "description": "Related project ID" },
+        "customerName": { "type": "string", "description": "Customer name" },
+        "customerPhone": { "type": "string", "description": "Customer phone" },
+        "siteAddress": { "type": "string", "description": "Site address" },
+        "workDescription": { "type": "string", "description": "Work description and breakdown" },
+        "subtotal": { "type": "number", "description": "Subtotal before tax" },
+        "gstPercent": { "type": "number", "description": "GST rate percentage" },
+        "totalAmount": { "type": "number", "description": "Total final estimate" },
+        "advanceAmount": { "type": "number", "description": "Advance required" },
+        "balanceDue": { "type": "number", "description": "Balance due on completion" },
+        "status": { "type": "string", "description": "Quotation status" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Creation timestamp" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Update timestamp" }
+      },
+      "required": ["userId", "customerName", "workDescription", "totalAmount", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/projects/{projectId}": {
+      "schema": { "$ref": "#/entities/Project" },
+      "description": "User projects, site measurements, and fabrication orders"
+    },
+    "/catalog/{catalogId}": {
+      "schema": { "$ref": "#/entities/CatalogItem" },
+      "description": "User catalog items and showcase designs"
+    },
+    "/quotations/{quotationId}": {
+      "schema": { "$ref": "#/entities/Quotation" },
+      "description": "Customer quotations and estimates"
+    }
+  }
+}

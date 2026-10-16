@@ -1,0 +1,6 @@
+{
+  "name": "SteelCraft Pro",
+  "description": "Steel railing, aluminium, wooden balcony, UPVC, home interior, and furniture workshop management and customer portal",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

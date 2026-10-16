@@ -1,0 +1,129 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny all access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // --- Entity Validation Helpers ---
+
+    function isValidProject(data) {
+      return data.userId is string && data.userId.size() > 0 && data.userId.size() <= 128 &&
+             data.customerName is string && data.customerName.size() >= 1 && data.customerName.size() <= 120 &&
+             data.category is string && data.category.size() >= 2 && data.category.size() <= 60 &&
+             data.title is string && data.title.size() >= 1 && data.title.size() <= 150 &&
+             data.status is string && data.status.size() >= 2 && data.status.size() <= 40 &&
+             (!('customerPhone' in data) || data.customerPhone == null || (data.customerPhone is string && data.customerPhone.size() <= 30)) &&
+             (!('siteAddress' in data) || data.siteAddress == null || (data.siteAddress is string && data.siteAddress.size() <= 300)) &&
+             (!('notes' in data) || data.notes == null || (data.notes is string && data.notes.size() <= 2000)) &&
+             (!('totalSqft' in data) || data.totalSqft == null || data.totalSqft is number) &&
+             (!('runningFeet' in data) || data.runningFeet == null || data.runningFeet is number) &&
+             (!('ratePerUnit' in data) || data.ratePerUnit == null || data.ratePerUnit is number) &&
+             (!('totalAmount' in data) || data.totalAmount == null || data.totalAmount is number) &&
+             (!('advancePaid' in data) || data.advancePaid == null || data.advancePaid is number) &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             (!('updatedAt' in data) || data.updatedAt == null || (data.updatedAt is timestamp && data.updatedAt <= request.time));
+    }
+
+    function isValidCatalogItem(data) {
+      return data.userId is string && data.userId.size() > 0 && data.userId.size() <= 128 &&
+             data.title is string && data.title.size() >= 1 && data.title.size() <= 150 &&
+             data.category is string && data.category.size() >= 2 && data.category.size() <= 60 &&
+             data.materialGrade is string && data.materialGrade.size() >= 1 && data.materialGrade.size() <= 150 &&
+             (!('description' in data) || data.description == null || (data.description is string && data.description.size() <= 2000)) &&
+             (!('priceRange' in data) || data.priceRange == null || (data.priceRange is string && data.priceRange.size() <= 100)) &&
+             (!('imageUrl' in data) || data.imageUrl == null || (data.imageUrl is string && data.imageUrl.size() <= 1000)) &&
+             (!('isFeatured' in data) || data.isFeatured is bool) &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             (!('updatedAt' in data) || data.updatedAt == null || (data.updatedAt is timestamp && data.updatedAt <= request.time));
+    }
+
+    function isValidQuotation(data) {
+      return data.userId is string && data.userId.size() > 0 && data.userId.size() <= 128 &&
+             data.customerName is string && data.customerName.size() >= 1 && data.customerName.size() <= 120 &&
+             data.workDescription is string && data.workDescription.size() >= 1 && data.workDescription.size() <= 3000 &&
+             data.totalAmount is number &&
+             (!('projectId' in data) || data.projectId == null || (data.projectId is string && data.projectId.size() <= 128)) &&
+             (!('customerPhone' in data) || data.customerPhone == null || (data.customerPhone is string && data.customerPhone.size() <= 30)) &&
+             (!('siteAddress' in data) || data.siteAddress == null || (data.siteAddress is string && data.siteAddress.size() <= 300)) &&
+             (!('subtotal' in data) || data.subtotal == null || data.subtotal is number) &&
+             (!('gstPercent' in data) || data.gstPercent == null || data.gstPercent is number) &&
+             (!('advanceAmount' in data) || data.advanceAmount == null || data.advanceAmount is number) &&
+             (!('balanceDue' in data) || data.balanceDue == null || data.balanceDue is number) &&
+             (!('status' in data) || data.status == null || (data.status is string && data.status.size() <= 40)) &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             (!('updatedAt' in data) || data.updatedAt == null || (data.updatedAt is timestamp && data.updatedAt <= request.time));
+    }
+
+    // --- Collections ---
+
+    match /projects/{projectId} {
+      allow get: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() &&
+                       isValidId(projectId) &&
+                       incoming().userId == request.auth.uid &&
+                       incoming().keys().hasAll(['userId', 'customerName', 'category', 'title', 'status', 'createdAt']) &&
+                       isValidProject(incoming());
+      allow update: if isSignedIn() &&
+                       isValidId(projectId) &&
+                       existing().userId == request.auth.uid &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       isValidProject(incoming());
+      allow delete: if isSignedIn() && existing().userId == request.auth.uid;
+    }
+
+    match /catalog/{catalogId} {
+      allow get: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() &&
+                       isValidId(catalogId) &&
+                       incoming().userId == request.auth.uid &&
+                       incoming().keys().hasAll(['userId', 'title', 'category', 'materialGrade', 'createdAt']) &&
+                       isValidCatalogItem(incoming());
+      allow update: if isSignedIn() &&
+                       isValidId(catalogId) &&
+                       existing().userId == request.auth.uid &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       isValidCatalogItem(incoming());
+      allow delete: if isSignedIn() && existing().userId == request.auth.uid;
+    }
+
+    match /quotations/{quotationId} {
+      allow get: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() &&
+                       isValidId(quotationId) &&
+                       incoming().userId == request.auth.uid &&
+                       incoming().keys().hasAll(['userId', 'customerName', 'workDescription', 'totalAmount', 'createdAt']) &&
+                       isValidQuotation(incoming());
+      allow update: if isSignedIn() &&
+                       isValidId(quotationId) &&
+                       existing().userId == request.auth.uid &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       isValidQuotation(incoming());
+      allow delete: if isSignedIn() && existing().userId == request.auth.uid;
+    }
+  }
+}
