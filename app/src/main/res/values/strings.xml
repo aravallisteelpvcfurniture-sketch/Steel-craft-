@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">SteelCraft Pro</string>
+    <!-- Google Web Client ID used by Credential Manager / Google Sign-In -->
+    <string name="default_web_client_id">171461343612-ov5keclpdhs1tr9i7k5htd94mkdeigid.apps.googleusercontent.com</string>
 </resources>
