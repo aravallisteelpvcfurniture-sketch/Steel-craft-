@@ -82,6 +82,42 @@ jobs:
               -dname "CN=Android Debug,O=Android,C=US"
           fi
 
+          # Ensure app/google-services.json is present for Google Services plugin
+          if [ ! -f app/google-services.json ]; then
+            echo "Generating default app/google-services.json..."
+            cat << 'EOF' > app/google-services.json
+{
+  "project_info": {
+    "project_number": "171461343612",
+    "project_id": "gen-lang-client-0415886588",
+    "storage_bucket": "gen-lang-client-0415886588.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:171461343612:android:7d88403526e38e6c0c0cf9",
+        "android_client_info": {
+          "package_name": "com.aistudio.steelcraft.kmwpxz"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "171461343612-ov5keclpdhs1tr9i7k5htd94mkdeigid.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyALma0eK6KguGGDbE3x2koYYUCfWwbvJ3o"
+        }
+      ]
+    }
+  ],
+  "configuration_version": "1"
+}
+EOF
+          fi
+
           # Ensure gradlew executable permissions
           chmod +x ./gradlew || true
 
