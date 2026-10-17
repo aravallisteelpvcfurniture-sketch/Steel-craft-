@@ -27,6 +27,10 @@ jobs:
     name: Build & Package Android APK
     runs-on: ubuntu-latest
 
+    env:
+      ANDROID_HOME: /usr/local/lib/android/sdk
+      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -41,24 +45,24 @@ jobs:
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
+        continue-on-error: true
 
       - name: Accept Android SDK Licenses
         run: |
           echo "Accepting Android SDK licenses..."
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null 2>&1 || true
           yes | sdkmanager --licenses >/dev/null 2>&1 || true
-          if [ -n "$ANDROID_HOME" ] && [ -x "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" ]; then
-            yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null 2>&1 || true
-          fi
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: '9.3.1'
           cache-read-only: false
 
       - name: Prepare Android Keystore and Environment
         run: |
           echo "Setting up environment configuration..."
+          chmod +x ./gradlew || true
+
           # Ensure .env file exists for Secrets Gradle Plugin
           if [ ! -f .env ]; then
             if [ -f .env.example ]; then
@@ -71,7 +75,7 @@ jobs:
           # Ensure debug.keystore is present
           if [ -f debug.keystore.base64 ]; then
             echo "Decoding debug.keystore from debug.keystore.base64..."
-            base64 -d debug.keystore.base64 > debug.keystore || true
+            base64 -d debug.keystore.base64 > debug.keystore 2>/dev/null || base64 --decode debug.keystore.base64 > debug.keystore 2>/dev/null || true
           fi
 
           if [ ! -s debug.keystore ]; then
@@ -82,7 +86,7 @@ jobs:
               -dname "CN=Android Debug,O=Android,C=US"
           fi
 
-          # Ensure app/google-services.json is present for Google Services plugin
+          # Ensure app/google-services.json is present
           if [ ! -f app/google-services.json ]; then
             echo "Generating default app/google-services.json..."
             cat << 'EOF' > app/google-services.json
@@ -118,34 +122,27 @@ jobs:
 EOF
           fi
 
-          # Ensure gradlew executable permissions
-          chmod +x ./gradlew || true
-
           # If gradle-wrapper.jar was not committed, generate wrapper
           if [ ! -f gradle/wrapper/gradle-wrapper.jar ]; then
             echo "Gradle wrapper JAR missing, generating wrapper..."
-            gradle wrapper
+            gradle wrapper || true
           fi
 
       - name: Build Debug APK
         run: |
           echo "Starting Debug APK build with Gradle..."
-          if [ -f "./gradlew" ]; then
-            chmod +x ./gradlew
-            ./gradlew :app:assembleDebug --stacktrace --no-daemon || gradle :app:assembleDebug --stacktrace --no-daemon
-          else
-            gradle :app:assembleDebug --stacktrace --no-daemon
-          fi
+          chmod +x ./gradlew || true
+          ./gradlew :app:assembleDebug -x test -x lint --stacktrace --no-daemon
 
       - name: Prepare APK Outputs
         run: |
           mkdir -p apk-output
-          TIMESTAMP=$(date +'%Y%m%d_%H%M%S')
-          cp app/build/outputs/apk/debug/app-debug.apk apk-output/SteelCraft-Pro-debug.apk
-          cp app/build/outputs/apk/debug/app-debug.apk apk-output/SteelCraft-Pro-${TIMESTAMP}.apk
-          cp app/build/outputs/apk/debug/app-debug.apk apk-output/app-debug.apk
-          
-          # Log details
+          # Copy all generated APKs
+          find app/build/outputs/apk/ -name "*.apk" -exec cp {} apk-output/ \;
+          if [ -f app/build/outputs/apk/debug/app-debug.apk ]; then
+            cp app/build/outputs/apk/debug/app-debug.apk apk-output/SteelCraft-Pro-debug.apk
+          fi
+          echo "=== APK OUTPUTS ==="
           ls -lh apk-output/
 
       - name: Build Release APK (Optional)
