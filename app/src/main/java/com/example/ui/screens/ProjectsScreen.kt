@@ -22,9 +22,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Call
-import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
@@ -385,7 +385,7 @@ fun ProjectDetailCard(
                                 .size(36.dp)
                         ) {
                             Box(contentAlignment = Alignment.Center) {
-                                Icon(Icons.Default.Chat, contentDescription = "WhatsApp", tint = StatusCompleted, modifier = Modifier.size(18.dp))
+                                Icon(Icons.AutoMirrored.Filled.Chat, contentDescription = "WhatsApp", tint = StatusCompleted, modifier = Modifier.size(18.dp))
                             }
                         }
                     }
